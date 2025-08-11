@@ -1,69 +1,582 @@
-// 📁 Folder Structure // quillora/ // ├── backend/ // │   ├── controllers/ // │   ├── models/ // │   ├── routes/ // │   ├── middleware/ // │   ├── config/ // │   └── server.js // └── frontend/ //     ├── public/ //     ├── src/ //     │   ├── components/ //     │   ├── pages/ //     │   ├── context/ //     │   ├── api/ //     │   ├── App.js //     │   └── index.js
+#!/usr/bin/env bash
+set -e
 
-// ==================== BACKEND ====================
+ROOT_DIR="${PWD}/quillora_project"
+echo "Creating project at: $ROOT_DIR"
+rm -rf "$ROOT_DIR"
+mkdir -p "$ROOT_DIR"
 
-// 📁 backend/config/db.js const mongoose = require('mongoose'); const connectDB = async () => { try { await mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true, }); console.log('MongoDB connected'); } catch (error) { console.error(error.message); process.exit(1); } }; module.exports = connectDB;
+# helper
+write() {
+  local path="$ROOT_DIR/$1"
+  mkdir -p "$(dirname "$path")"
+  cat > "$path"
+  echo "Wrote $path"
+}
 
-// 📁 backend/models/User.js const mongoose = require('mongoose'); const userSchema = new mongoose.Schema({ username: String, email: String, password: String, avatar: String, bio: String, followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], role: { type: String, default: 'user' }, isBanned: { type: Boolean, default: false }, }); module.exports = mongoose.model('User', userSchema);
+# README
+write "README.md" <<'EOF'
+# Quillora
 
-// 📁 backend/models/Post.js const postSchema = new mongoose.Schema({ content: String, media: String, tags: [String], likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], author: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, createdAt: { type: Date, default: Date.now }, }); module.exports = mongoose.model('Post', postSchema);
+Quillora — AI-powered blog/notes app (Full frontend + backend template).
 
-// 📁 backend/controllers/userController.js const User = require('../models/User'); exports.register = async (req, res) => { /* handle registration / }; exports.login = async (req, res) => { / handle login / }; exports.profile = async (req, res) => { / handle profile */ };
+## Quick start (dev)
 
-// 📁 backend/routes/userRoutes.js const express = require('express'); const router = express.Router(); const { register, login, profile } = require('../controllers/userController'); router.post('/register', register); router.post('/login', login); router.get('/profile/:id', profile); module.exports = router;
+### Backend
+1. `cd backend`
+2. Copy `.env.example` to `.env` and fill values
+3. `npm install`
+4. `npm run dev`
 
-// 📁 backend/server.js const express = require('express'); const app = express(); const dotenv = require('dotenv'); const connectDB = require('./config/db'); const http = require('http').createServer(app); const io = require('socket.io')(http, { cors: { origin: '*' }, }); dotenv.config(); connectDB();
+### Frontend
+1. `cd frontend`
+2. `npm install`
+3. `npm run dev`
+4. Open `http://localhost:3000`
 
-app.use(express.json()); app.use('/api/users', require('./routes/userRoutes'));
+## Deploy
+- Frontend: Deploy `frontend/` on Vercel (connect GitHub repo)
+- Backend: Deploy `backend/` on Render/Heroku/Vercel Serverless (ensure env vars)
+EOF
 
-io.on('connection', (socket) => { console.log('New client connected'); socket.on('sendMessage', (data) => { io.emit('newMessage', data); }); });
+write ".gitignore" <<'EOF'
+# Node
+node_modules
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.DS_Store
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.vscode/
+build/
+.next/
+frontend/.next
+backend/uploads
+EOF
 
-const PORT = process.env.PORT || 5000; http.listen(PORT, () => console.log(Server running on ${PORT}));
+# FRONTEND
+mkdir -p "$ROOT_DIR/frontend/pages" "$ROOT_DIR/frontend/components" "$ROOT_DIR/frontend/styles" "$ROOT_DIR/frontend/utils"
 
-// ==================== FRONTEND ====================
+write "frontend/package.json" <<'EOF'
+{
+  "name": "quillora-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "axios": "^1.4.0",
+    "next": "13.4.13",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "swr": "^2.2.0"
+  }
+}
+EOF
 
-// 📁 frontend/src/api/api.js import axios from 'axios'; export const API = axios.create({ baseURL: 'http://localhost:5000/api' });
+write "frontend/next.config.js" <<'EOF'
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
+  images: {
+    domains: ['res.cloudinary.com', 'localhost']
+  }
+}
 
-// 📁 frontend/src/context/AuthContext.js import { createContext, useState, useEffect } from 'react'; export const AuthContext = createContext(); export const AuthProvider = ({ children }) => { const [user, setUser] = useState(null); return ( <AuthContext.Provider value={{ user, setUser }}> {children} </AuthContext.Provider> ); };
+module.exports = nextConfig
+EOF
 
-// 📁 frontend/src/components/Navbar.js const Navbar = () => (<nav>Quillora | Home | Explore | Groups | Messages</nav>);
+write "frontend/pages/_app.js" <<'EOF'
+import '../styles/globals.css'
 
-// 📁 frontend/src/components/PostForm.js import { useState } from 'react'; const PostForm = () => { const [content, setContent] = useState(''); const handlePost = () => { /* Send post to API */ }; return ( <div> <textarea onChange={(e) => setContent(e.target.value)} /> <button onClick={handlePost}>Post</button> </div> ); };
+export default function App({ Component, pageProps }) {
+  return <Component {...pageProps} />
+}
+EOF
 
-// 📁 frontend/src/pages/Home.js import PostForm from '../components/PostForm'; const Home = () => (
+write "frontend/utils/api.js" <<'EOF'
+import axios from 'axios'
 
-  <div>
-    <h1>Home Feed</h1>
-    <PostForm />
-  </div>
-);// 📁 frontend/src/App.js import { BrowserRouter, Routes, Route } from 'react-router-dom'; import Home from './pages/Home'; import { AuthProvider } from './context/AuthContext'; function App() { return ( <BrowserRouter> <AuthProvider> <Routes> <Route path='/' element={<Home />} /> </Routes> </AuthProvider> </BrowserRouter> ); } export default App;
+const API = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
+})
 
-// 📁 frontend/src/index.js import ReactDOM from 'react-dom/client'; import App from './App'; const root = ReactDOM.createRoot(document.getElementById('root')); root.render(<App />);
+export default API
+EOF
 
-// Continue with other features (chat UI, group system, explore, notifications...) in next steps. // Use Socket.IO client, Redux (if needed), and complete all components.
+write "frontend/pages/index.js" <<'EOF'
+import Link from 'next/link'
+import useSWR from 'swr'
+import api from '../utils/api'
+import Navbar from '../components/Navbar'
+import PostCard from '../components/PostCard'
 
-  // This is the full code base for Quillora - a social platform for creative sharing // Tech Stack: MERN + Socket.IO + Tailwind + MongoDB + JWT Auth + File Uploads // Folder structure: server/ for backend, client/ for frontend
+const fetcher = (url) => api.get(url).then(r => r.data)
 
-// === SERVER (server/index.js) === const express = require('express'); const mongoose = require('mongoose'); const cors = require('cors'); const http = require('http'); const socketIO = require('socket.io'); const dotenv = require('dotenv'); const authRoutes = require('./routes/authRoutes'); const userRoutes = require('./routes/userRoutes'); const postRoutes = require('./routes/postRoutes'); const groupRoutes = require('./routes/groupRoutes'); const messageRoutes = require('./routes/messageRoutes'); const adminRoutes = require('./routes/adminRoutes');
+export default function Home() {
+  const { data, error } = useSWR('/posts', fetcher)
 
-dotenv.config(); const app = express(); const server = http.createServer(app); const io = socketIO(server, { cors: { origin: '*' } });
+  if (error) return <div>Error loading posts</div>
+  if (!data) return <div>Loading...</div>
 
-mongoose.connect(process.env.MONGO_URI) .then(() => console.log('MongoDB connected')) .catch(err => console.error(err));
+  return (
+    <div>
+      <Navbar />
+      <main className="container">
+        <header className="hero">
+          <h1>Quillora</h1>
+          <p>Your AI powered notes & blog</p>
+          <Link href="/register">Get started</Link>
+        </header>
+        <section className="posts">
+          {data.map(post => (
+            <PostCard key={post._id} post={post} />
+          ))}
+        </section>
+      </main>
+    </div>
+  )
+}
+EOF
 
-app.use(cors()); app.use(express.json());
+write "frontend/pages/register.js" <<'EOF'
+import { useState } from 'react'
+import api from '../utils/api'
+import { useRouter } from 'next/router'
+import Navbar from '../components/Navbar'
 
-app.use('/api/auth', authRoutes); app.use('/api/users', userRoutes); app.use('/api/posts', postRoutes); app.use('/api/groups', groupRoutes); app.use('/api/messages', messageRoutes); app.use('/api/admin', adminRoutes);
+export default function Register(){
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const router = useRouter()
 
-io.on('connection', (socket) => { console.log('User connected:', socket.id); socket.on('joinRoom', (roomId) => socket.join(roomId)); socket.on('sendMessage', ({ roomId, message }) => { io.to(roomId).emit('receiveMessage', message); }); socket.on('typing', (roomId) => socket.to(roomId).emit('typing')); });
+  async function handleSubmit(e){
+    e.preventDefault()
+    try{
+      await api.post('/auth/register', { email, password })
+      router.push('/login')
+    } catch(err){
+      alert(err.response?.data?.message || 'Registration failed')
+    }
+  }
 
-const PORT = process.env.PORT || 5000; server.listen(PORT, () => console.log(Server running on port ${PORT}));
+  return (
+    <div>
+      <Navbar />
+      <main className="container">
+        <h2>Register</h2>
+        <form onSubmit={handleSubmit} className="form">
+          <input placeholder="Email" value={email} onChange={e=>setEmail(e.target.value)} />
+          <input placeholder="Password" type="password" value={password} onChange={e=>setPassword(e.target.value)} />
+          <button type="submit">Register</button>
+        </form>
+      </main>
+    </div>
+  )
+}
+EOF
 
-// === CLIENT (client/src/App.jsx) === import React from 'react'; import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'; import Home from './pages/Home'; import Login from './pages/Login'; import Register from './pages/Register'; import Feed from './pages/Feed'; import Profile from './pages/Profile'; import Groups from './pages/Groups'; import Messages from './pages/Messages'; import AdminDashboard from './pages/AdminDashboard';
+write "frontend/pages/login.js" <<'EOF'
+import { useState } from 'react'
+import api from '../utils/api'
+import { useRouter } from 'next/router'
+import Navbar from '../components/Navbar'
 
-export default function App() { return ( <Router> <Routes> <Route path='/' element={<Home />} /> <Route path='/login' element={<Login />} /> <Route path='/register' element={<Register />} /> <Route path='/feed' element={<Feed />} /> <Route path='/profile/:id' element={<Profile />} /> <Route path='/groups' element={<Groups />} /> <Route path='/messages' element={<Messages />} /> <Route path='/admin' element={<AdminDashboard />} /> </Routes> </Router> ); }
+export default function Login(){
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const router = useRouter()
 
-// More files are included in the next blocks (models, routes, pages, components) // This is the project shell. Next: build individual files and modules inside client and server.
+  async function handleSubmit(e){
+    e.preventDefault()
+    try{
+      const res = await api.post('/auth/login', { email, password })
+      // save token
+      localStorage.setItem('token', res.data.token)
+      router.push('/')
+    } catch(err){
+      alert(err.response?.data?.message || 'Login failed')
+    }
+  }
 
-// Continue to next block?
+  return (
+    <div>
+      <Navbar />
+      <main className="container">
+        <h2>Login</h2>
+        <form onSubmit={handleSubmit} className="form">
+          <input placeholder="Email" value={email} onChange={e=>setEmail(e.target.value)} />
+          <input placeholder="Password" type="password" value={password} onChange={e=>setPassword(e.target.value)} />
+          <button type="submit">Login</button>
+        </form>
+      </main>
+    </div>
+  )
+}
+EOF
 
-                                                                                                                                  
+write "frontend/pages/post/[id].js" <<'EOF'
+import { useRouter } from 'next/router'
+import useSWR from 'swr'
+import api from '../../utils/api'
+import Navbar from '../../components/Navbar'
+
+const fetcher = (url) => api.get(url).then(r => r.data)
+
+export default function PostPage(){
+  const router = useRouter()
+  const { id } = router.query
+  const { data, error } = useSWR(id ? `/posts/${id}` : null, fetcher)
+
+  if (error) return <div>Error</div>
+  if (!data) return <div>Loading...</div>
+
+  return (
+    <div>
+      <Navbar />
+      <main className="container">
+        <article>
+          <h1>{data.title}</h1>
+          <p>{data.content}</p>
+        </article>
+      </main>
+    </div>
+  )
+}
+EOF
+
+write "frontend/components/Navbar.js" <<'EOF'
+import Link from 'next/link'
+
+export default function Navbar(){
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+
+  function logout(){
+    if (typeof window !== 'undefined'){
+      localStorage.removeItem('token')
+      window.location.href = '/'
+    }
+  }
+
+  return (
+    <nav className="nav">
+      <div className="container">
+        <Link href="/"><a className="brand">Quillora</a></Link>
+        <div className="links">
+          {token ? (
+            <>
+              <Link href="/">New Post</Link>
+              <button onClick={logout}>Logout</button>
+            </>
+          ) : (
+            <>
+              <Link href="/login">Login</Link>
+              <Link href="/register">Register</Link>
+            </>
+          )}
+        </div>
+      </div>
+    </nav>
+  )
+}
+EOF
+
+write "frontend/components/PostCard.js" <<'EOF'
+import Link from 'next/link'
+
+export default function PostCard({ post }){
+  return (
+    <article className="post-card">
+      <h3><Link href={`/post/${post._id}`}>{post.title}</Link></h3>
+      <p>{post.content?.slice(0,200)}...</p>
+    </article>
+  )
+}
+EOF
+
+write "frontend/components/Editor.js" <<'EOF'
+import { useState } from 'react'
+import api from '../utils/api'
+
+export default function Editor({ initial = {}, onSaved }){
+  const [title, setTitle] = useState(initial.title || '')
+  const [content, setContent] = useState(initial.content || '')
+
+  async function save(){
+    const token = localStorage.getItem('token')
+    try{
+      const res = await api.post('/posts', { title, content }, { headers: { Authorization: `Bearer ${token}` } })
+      alert('Saved')
+      onSaved && onSaved(res.data)
+    } catch(err){
+      alert('Save failed')
+    }
+  }
+
+  return (
+    <div className="editor">
+      <input placeholder="Title" value={title} onChange={e=>setTitle(e.target.value)} />
+      <textarea placeholder="Write your note..." value={content} onChange={e=>setContent(e.target.value)} />
+      <button onClick={save}>Save</button>
+    </div>
+  )
+}
+EOF
+
+write "frontend/styles/globals.css" <<'EOF'
+:root{ --max-width: 900px }
+body{ font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; margin:0 }
+.container{ max-width: var(--max-width); margin: 0 auto; padding: 2rem }
+.nav{ background:#111; color:#fff }
+.nav .brand{ font-weight:700 }
+.hero{ text-align:center; padding:3rem 0 }
+.posts{ display:grid; grid-template-columns: 1fr 1fr; gap:1rem }
+.post-card{ border:1px solid #eee; padding:1rem; border-radius:8px }
+.form input, .form textarea{ display:block; width:100%; padding:0.5rem; margin-bottom:0.5rem }
+.editor input, .editor textarea{ width:100%; padding:0.5rem; margin-bottom:0.5rem }
+EOF
+
+# BACKEND
+mkdir -p "$ROOT_DIR/backend/config" "$ROOT_DIR/backend/models" "$ROOT_DIR/backend/controllers" "$ROOT_DIR/backend/routes" "$ROOT_DIR/backend/middleware"
+
+write "backend/package.json" <<'EOF'
+{
+  "name": "quillora-backend",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.0",
+    "mongoose": "^7.5.1",
+    "multer": "^1.4.5-lts.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  }
+}
+EOF
+
+write "backend/.env.example" <<'EOF'
+PORT=5000
+MONGO_URI=mongodb+srv://<user>:<pass>@cluster0.mongodb.net/quillora?retryWrites=true&w=majority
+JWT_SECRET=replace_with_a_long_secret
+CLOUDINARY_URL=
+EOF
+
+write "backend/server.js" <<'EOF'
+require('dotenv').config()
+const express = require('express')
+const cors = require('cors')
+const connectDB = require('./config/db')
+
+const app = express()
+connectDB()
+
+app.use(cors())
+app.use(express.json())
+app.use('/uploads', express.static('uploads'))
+
+// routes
+app.use('/api/auth', require('./routes/auth'))
+app.use('/api/posts', require('./routes/posts'))
+
+const PORT = process.env.PORT || 5000
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
+EOF
+
+write "backend/config/db.js" <<'EOF'
+const mongoose = require('mongoose')
+
+const connectDB = async () => {
+  try{
+    const uri = process.env.MONGO_URI || 'mongodb://localhost:27017/quillora'
+    await mongoose.connect(uri)
+    console.log('MongoDB connected')
+  } catch(err){
+    console.error(err)
+    process.exit(1)
+  }
+}
+
+module.exports = connectDB
+EOF
+
+write "backend/models/User.js" <<'EOF'
+const mongoose = require('mongoose')
+const UserSchema = new mongoose.Schema({
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+}, { timestamps: true })
+
+module.exports = mongoose.model('User', UserSchema)
+EOF
+
+write "backend/models/Post.js" <<'EOF'
+const mongoose = require('mongoose')
+const PostSchema = new mongoose.Schema({
+  author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  title: { type: String, required: true },
+  content: { type: String },
+  image: { type: String }
+}, { timestamps: true })
+
+module.exports = mongoose.model('Post', PostSchema)
+EOF
+
+write "backend/controllers/authController.js" <<'EOF'
+const User = require('../models/User')
+const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
+
+exports.register = async (req, res) => {
+  try{
+    const { email, password } = req.body
+    if(!email || !password) return res.status(400).json({ message: 'Missing fields' })
+    let user = await User.findOne({ email })
+    if(user) return res.status(400).json({ message: 'User exists' })
+    const salt = await bcrypt.genSalt(10)
+    const hashed = await bcrypt.hash(password, salt)
+    user = new User({ email, password: hashed })
+    await user.save()
+    res.json({ message: 'Registered' })
+  } catch(err){
+    console.error(err)
+    res.status(500).json({ message: 'Server error' })
+  }
+}
+
+exports.login = async (req, res) => {
+  try{
+    const { email, password } = req.body
+    const user = await User.findOne({ email })
+    if(!user) return res.status(400).json({ message: 'Invalid credentials' })
+    const match = await bcrypt.compare(password, user.password)
+    if(!match) return res.status(400).json({ message: 'Invalid credentials' })
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'secret', { expiresIn: '7d' })
+    res.json({ token })
+  } catch(err){
+    console.error(err)
+    res.status(500).json({ message: 'Server error' })
+  }
+}
+EOF
+
+write "backend/controllers/postController.js" <<'EOF'
+const Post = require('../models/Post')
+
+exports.createPost = async (req, res) => {
+  try{
+    const { title, content } = req.body
+    const post = new Post({ title, content, author: req.user.id })
+    await post.save()
+    res.json(post)
+  } catch(err){
+    console.error(err)
+    res.status(500).json({ message: 'Server error' })
+  }
+}
+
+exports.getPosts = async (req, res) => {
+  try{
+    const posts = await Post.find().populate('author', 'email').sort({ createdAt: -1 })
+    res.json(posts)
+  } catch(err){
+    console.error(err)
+    res.status(500).json({ message: 'Server error' })
+  }
+}
+
+exports.getPost = async (req, res) => {
+  try{
+    const post = await Post.findById(req.params.id).populate('author', 'email')
+    if(!post) return res.status(404).json({ message: 'Not found' })
+    res.json(post)
+  } catch(err){
+    console.error(err)
+    res.status(500).json({ message: 'Server error' })
+  }
+}
+EOF
+
+write "backend/routes/auth.js" <<'EOF'
+const express = require('express')
+const router = express.Router()
+const { register, login } = require('../controllers/authController')
+
+router.post('/register', register)
+router.post('/login', login)
+
+module.exports = router
+EOF
+
+write "backend/routes/posts.js" <<'EOF'
+const express = require('express')
+const router = express.Router()
+const { createPost, getPosts, getPost } = require('../controllers/postController')
+const auth = require('../middleware/auth')
+
+router.get('/', getPosts)
+router.get('/:id', getPost)
+router.post('/', auth, createPost)
+
+module.exports = router
+EOF
+
+write "backend/middleware/auth.js" <<'EOF'
+const jwt = require('jsonwebtoken')
+
+module.exports = function(req, res, next){
+  const header = req.headers['authorization']
+  if(!header) return res.status(401).json({ message: 'No token' })
+  const parts = header.split(' ')
+  if(parts.length !== 2) return res.status(401).json({ message: 'Invalid token' })
+  const token = parts[1]
+  try{
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret')
+    req.user = { id: decoded.id }
+    next()
+  } catch(err){
+    return res.status(401).json({ message: 'Token invalid' })
+  }
+}
+EOF
+
+# sample data
+mkdir -p "$ROOT_DIR/sample-data"
+write "sample-data/seed.js" <<'EOF'
+// This is a simple seed script outline. Configure and run manually.
+// Example:
+//   node seed.js
+//
+console.log('This folder can hold sample seed scripts for MongoDB (optional).')
+EOF
+
+echo
+echo "Project scaffold complete!"
+echo "Next steps:"
+echo "  1) cd quillora_project/frontend && npm install"
+echo "  2) cd ../backend && npm install"
+echo "  3) Create backend/.env from backend/.env.example and set MONGO_URI and JWT_SECRET"
+echo "  4) Run backend: npm run dev (needs MongoDB)"
+echo "  5) Run frontend: cd frontend && npm run dev"
+echo
+echo "To zip the project:"
+echo "  cd $(dirname "$ROOT_DIR")"
+echo "  zip -r quillora_project.zip $(basename "$ROOT_DIR")"
+echo
+echo "Upload quillora_project.zip to Google Drive via https://drive.google.com"
