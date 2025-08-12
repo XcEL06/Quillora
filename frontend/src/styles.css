@@ -1,0 +1,8 @@
+=== FILE: frontend/src/styles.css ===
+body { font-family: Arial, sans-serif; margin:0; padding:0; background:#f8fafc; }
+.nav { display:flex; gap:12px; background:#0f172a; color:white; padding:12px; }
+.nav a { color:white; text-decoration:none; }
+.container { padding:16px; }
+.card { border:1px solid #e5e7eb; padding:12px; border-radius:8px; margin-bottom:12px; background:white; }
+input, textarea { width:100%; padding:8px; margin:8px 0; box-sizing:border-box; }
+button { padding:8px 12px; background:#0ea5e9; color:white; border:0; border-radius:6px; cursor:pointer; }
