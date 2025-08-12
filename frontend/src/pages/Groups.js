@@ -1,4 +1,3 @@
-=== FILE: frontend/src/pages/Groups.js ===
 import React,{useState,useEffect} from 'react';
 import axios from 'axios';
 export default function Groups(){
