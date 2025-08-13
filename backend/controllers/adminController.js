@@ -1,4 +1,3 @@
-=== FILE: backend/controllers/adminController.js ===
 const User = require('../models/User');
 const Report = require('../models/Report');
 exports.getReports = async (req,res)=>{
