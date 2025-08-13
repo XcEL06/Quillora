@@ -5,7 +5,7 @@ export default function Login(){
   const submit = async e => {
     e.preventDefault();
     try{
-      const res = await axios.post('http://localhost:5000/api/auth/login',{email,password});
+      const res = await axios.post'https://quillora-5ddm.onrender.com/api/auth/login',{email,password});
       localStorage.setItem('quillora_user', JSON.stringify(res.data));
       alert('Logged in');
     }catch(err){ alert(err.response?.data?.message || 'Error'); }
