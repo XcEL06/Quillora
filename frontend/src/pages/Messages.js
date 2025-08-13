@@ -1,6 +1,6 @@
 import React, {useState,useEffect} from 'react';
 import io from 'socket.io-client';
-const socket = io('http://localhost:5000');
+const socket = io'https://quillora-5ddm.onrender.com';
 export default function Messages(){
   const [messages,setMessages]=useState([]); const [text,setText]=useState('');
   useEffect(()=>{ socket.on('receive_message', m=> setMessages(prev=>[...prev,m])); },[]);
