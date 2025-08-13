@@ -8,7 +8,7 @@ export default function Profile() {
 
   useEffect(() => {
     axios
-      .get(`https://quillora-5ddm.onrender.com/api/users/profile/${id}`)
+      .get`https://quillora-5ddm.onrender.com/api/users/profile/${id}`
       .then((r) => setUser(r.data))
       .catch((err) => {
         console.error("Error fetching profile:", err);
