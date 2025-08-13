@@ -1,4 +1,3 @@
-=== FILE: backend/middleware/auth.js ===
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 async function protect(req, res, next){
