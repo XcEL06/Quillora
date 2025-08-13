@@ -1,4 +1,3 @@
-=== FILE: backend/controllers/postController.js ===
 const Post = require('../models/Post');
 exports.createPost = async (req,res)=>{
   const {content,tags,privacy,mediaType} = req.body;
