@@ -1,4 +1,3 @@
-=== FILE: backend/server.js ===
 /**
  * Quillora Backend - server.js
  */
