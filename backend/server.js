@@ -11,7 +11,7 @@ const path = require('path');
 
 dotenv.config();
 const app = express();
-app.use(cors({ origin: process.env.CLIENT_URL || '*' }));
+app.use(cors({ origin: process.env.https://quillora-o57rg7ohe-xcel06s-projects.vercel.app/ || '*' }));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
