@@ -1,4 +1,3 @@
-=== FILE: backend/controllers/reportController.js ===
 const Report = require('../models/Report');
 exports.createReport = async (req,res)=>{
   const {targetType,targetId,reason} = req.body;
