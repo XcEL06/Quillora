@@ -5,7 +5,7 @@ export default function Register(){
   const submit = async e => {
     e.preventDefault();
     try{
-      const res = await axios.post('http://localhost:5000/api/auth/register',{username,email,password});
+      const res = await axios.post'https://quillora-5ddm.onrender.com/api/auth/register',{username,email,password});
       localStorage.setItem('quillora_user', JSON.stringify(res.data));
       alert('Registered');
     }catch(err){ alert(err.response?.data?.message || 'Error'); }
