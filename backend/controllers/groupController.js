@@ -1,4 +1,3 @@
-=== FILE: backend/controllers/groupController.js ===
 const Group = require('../models/Group');
 exports.createGroup = async (req,res)=>{
   const {name,description,privacy,tags} = req.body;
