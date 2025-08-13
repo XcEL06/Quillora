@@ -1,4 +1,3 @@
-=== FILE: backend/controllers/messageController.js ===
 const Message = require('../models/Message');
 exports.sendMessage = async (req,res)=>{
   const {to, text, conversationId} = req.body;
