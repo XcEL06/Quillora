@@ -1,0 +1,91 @@
+<!-- quillora/gallery.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gallery - Quillora</title>
+<link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="css/gallery.css">
+<link rel="stylesheet" href="css/navbar.css">
+</head>
+<body>
+<nav>
+  <div class="logo">Quillora</div>
+  <div class="links">
+    <a href="feed.html">Feed</a>
+    <a href="gallery.html">Gallery</a>
+    <a href="profile.html">Profile</a>
+  </div>
+</nav>
+
+<main>
+  <section class="upload-section">
+    <h2>Upload Creative Work</h2>
+    <input type="file" id="file-upload">
+    <input type="text" id="work-title" placeholder="Title">
+    <button id="upload-btn">Upload</button>
+  </section>
+
+  <section class="gallery-display" id="gallery">
+    <h2>Your Gallery</h2>
+    <div id="works"></div>
+  </section>
+
+  <section class="ai-assist">
+    <h3>AI Writing Assist (Local)</h3>
+    <textarea id="ai-text" placeholder="Type your story or poem here..."></textarea>
+    <button id="ai-generate">Generate Prompt Ideas</button>
+    <p id="ai-suggestion"></p>
+  </section>
+</main>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+const supabaseUrl = 'https://rvmfytutdqaetnqftzhv.supabase.co';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ2bWZ5dHV0ZHFhZXRucWZ0emh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2NTM3NDksImV4cCI6MjA4NDIyOTc0OX0.CkjaPzb_j4Q_CHDEO3laH7dizxLENpFmJBy82L4NXwg';
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Upload file
+document.getElementById('upload-btn').addEventListener('click', async () => {
+  const file = document.getElementById('file-upload').files[0];
+  const title = document.getElementById('work-title').value;
+  if (!file) return alert('Select a file');
+
+  const { data, error } = await supabase.storage.from('gallery').upload(file.name, file);
+  if (error) return alert(error.message);
+
+  await supabase.from('gallery').insert([{ title, file_url: data.path, user_id: supabase.auth.user().id }]);
+  alert('Uploaded successfully!');
+  loadGallery();
+});
+
+// Load gallery
+async function loadGallery() {
+  const { data } = await supabase.from('gallery').select('*').eq('user_id', supabase.auth.user().id);
+  const worksContainer = document.getElementById('works');
+  worksContainer.innerHTML = '';
+  data.forEach(work => {
+    const div = document.createElement('div');
+    div.classList.add('work');
+    div.innerHTML = `<p>${work.title}</p><a href="${work.file_url}" target="_blank">View</a>`;
+    worksContainer.appendChild(div);
+  });
+}
+loadGallery();
+
+// AI Writing Assist (local simple)
+document.getElementById('ai-generate').addEventListener('click', () => {
+  const input = document.getElementById('ai-text').value;
+  if (!input) return alert('Type something first!');
+  const suggestions = [
+    'What if the character meets a mysterious stranger?',
+    'Describe a world where everything is reversed.',
+    'Create a conflict between two close friends.',
+    'Start a story with a sudden storm.'
+  ];
+  const rand = suggestions[Math.floor(Math.random() * suggestions.length)];
+  document.getElementById('ai-suggestion').innerText = rand;
+});
+</script>
+</body>
+</html>
