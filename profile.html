@@ -34,10 +34,10 @@
 </main>
 
 <script type="module">
-import { createClient } from '@supabase/supabase-js'
-const supabaseUrl = 'https://rvmfytutdqaetnqftzhv.supabase.co'
-const supabaseKey = process.env.SUPABASE_KEY
-const supabase = createClient(supabaseUrl, supabaseKey)
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+const supabaseUrl = 'https://rvmfytutdqaetnqftzhv.supabase.co';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ2bWZ5dHV0ZHFhZXRucWZ0emh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2NTM3NDksImV4cCI6MjA4NDIyOTc0OX0.CkjaPzb_j4Q_CHDEO3laH7dizxLENpFmJBy82L4NXwg';
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const user = supabase.auth.user();
 document.getElementById('username').innerText = user?.user_metadata?.name || 'Your Name';
