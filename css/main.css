@@ -1,0 +1,38 @@
+body {
+  margin: 0;
+  font-family: 'Arial', sans-serif;
+  background-color: #f4f4f4;
+  color: #333;
+}
+
+h1, h2, h3 {
+  color: #4a90e2;
+}
+
+button, .btn {
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  padding: 0.7rem 1.2rem;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover, .btn:hover {
+  opacity: 0.85;
+}
+
+.hero {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.features {
+  margin: 2rem auto;
+  max-width: 800px;
+}
+
+.features ul {
+  list-style-type: square;
+  padding-left: 1rem;
+}
