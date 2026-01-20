@@ -1,0 +1,68 @@
+<!-- quillora/jobs.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jobs - Quillora</title>
+<link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="css/navbar.css">
+<link rel="stylesheet" href="css/feed.css">
+</head>
+<body>
+<nav>
+  <div class="logo">Quillora</div>
+  <div class="links">
+    <a href="feed.html">Feed</a>
+    <a href="profile.html">Profile</a>
+    <a href="gallery.html">Gallery</a>
+  </div>
+</nav>
+
+<main>
+  <section class="job-post">
+    <h2>Post a Job or Collaboration</h2>
+    <form id="job-form">
+      <input type="text" id="job-title" placeholder="Job Title" required>
+      <textarea id="job-desc" placeholder="Description" required></textarea>
+      <button type="submit">Post Job</button>
+    </form>
+  </section>
+
+  <section class="job-feed" id="job-feed">
+    <h2>Available Jobs</h2>
+    <div id="jobs"></div>
+  </section>
+</main>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+const supabaseUrl = 'https://rvmfytutdqaetnqftzhv.supabase.co';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ2bWZ5dHV0ZHFhZXRucWZ0emh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2NTM3NDksImV4cCI6MjA4NDIyOTc0OX0.CkjaPzb_j4Q_CHDEO3laH7dizxLENpFmJBy82L4NXwg';
+const supabase = createClient(supabaseUrl, supabaseAnonKey);;
+
+document.getElementById('job-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const title = document.getElementById('job-title').value;
+  const desc = document.getElementById('job-desc').value;
+  await supabase.from('jobs').insert([{ title, description: desc, user_id: supabase.auth.user().id }]);
+  document.getElementById('job-title').value = '';
+  document.getElementById('job-desc').value = '';
+  loadJobs();
+});
+
+async function loadJobs() {
+  const { data } = await supabase.from('jobs').select('*').order('created_at', { ascending: false });
+  const container = document.getElementById('jobs');
+  container.innerHTML = '';
+  data.forEach(job => {
+    const div = document.createElement('div');
+    div.classList.add('job-item');
+    div.innerHTML = `<h4>${job.title}</h4><p>${job.description}</p>`;
+    container.appendChild(div);
+  });
+}
+loadJobs();
+</script>
+</body>
+</html>
