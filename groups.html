@@ -1,0 +1,64 @@
+<!-- quillora/groups.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Groups - Quillora</title>
+<link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="css/navbar.css">
+<link rel="stylesheet" href="css/feed.css">
+</head>
+<body>
+<nav>
+  <div class="logo">Quillora</div>
+  <div class="links">
+    <a href="feed.html">Feed</a>
+    <a href="profile.html">Profile</a>
+    <a href="gallery.html">Gallery</a>
+  </div>
+</nav>
+
+<main>
+  <section class="new-group">
+    <h2>Create a Group</h2>
+    <input type="text" id="group-name" placeholder="Group Name">
+    <textarea id="group-desc" placeholder="Description"></textarea>
+    <button id="create-group">Create Group</button>
+  </section>
+
+  <section class="groups-feed" id="groups-feed">
+    <h2>Groups</h2>
+    <div id="groups"></div>
+  </section>
+</main>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+const supabaseUrl = 'https://rvmfytutdqaetnqftzhv.supabase.co';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ2bWZ5dHV0ZHFhZXRucWZ0emh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2NTM3NDksImV4cCI6MjA4NDIyOTc0OX0.CkjaPzb_j4Q_CHDEO3laH7dizxLENpFmJBy82L4NXwg';
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+document.getElementById('create-group').addEventListener('click', async () => {
+  const name = document.getElementById('group-name').value;
+  const desc = document.getElementById('group-desc').value;
+  if(!name) return alert('Group name required');
+  await supabase.from('groups').insert([{ name, description: desc, user_id: supabase.auth.user().id }]);
+  loadGroups();
+});
+
+async function loadGroups() {
+  const { data } = await supabase.from('groups').select('*').order('created_at', { ascending: false });
+  const container = document.getElementById('groups');
+  container.innerHTML = '';
+  data.forEach(group => {
+    const div = document.createElement('div');
+    div.classList.add('group-item');
+    div.innerHTML = `<h4>${group.name}</h4><p>${group.description}</p>`;
+    container.appendChild(div);
+  });
+}
+loadGroups();
+</script>
+</body>
+</html>
