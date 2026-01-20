@@ -1,0 +1,17 @@
+.settings-section {
+  max-width: 600px;
+  margin: 2rem auto;
+  background: white;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.settings-section input {
+  width: 100%;
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+}
+#delete-account-btn {
+  background-color: #e74c3c;
+  color: white;
+}
