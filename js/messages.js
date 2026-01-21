@@ -10,6 +10,14 @@ async function init() {
   user = (await supabase.auth.getUser()).data.user;
   loadMessages();
 
+  async function markAsRead(messageId) {
+  await supabase
+    .from("messages")
+    .update({ read: true })
+    .eq("id", messageId);
+}
+
+
   supabase
     .channel("messages")
     .on(
